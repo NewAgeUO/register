@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация на сервере Ultima Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1c2c 0%, #2a2f4f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2a2f4f;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .required::after {
+            content: "*";
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        input.error {
+            border-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+
+        input.success {
+            border-color: #2ecc71;
+            background-color: #f0fff4;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .status-message {
+            font-size: 13px;
+            margin-top: 5px;
+            min-height: 20px;
+            padding: 3px 0;
+        }
+
+        .status-success {
+            color: #27ae60;
+        }
+
+        .status-error {
+            color: #e74c3c;
+        }
+
+        .status-info {
+            color: #3498db;
+        }
+
+        .status-warning {
+            color: #f39c12;
+        }
+
+        .password-strength {
+            height: 5px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .strength-weak { background: #e74c3c; width: 33%; }
+        .strength-medium { background: #f39c12; width: 66%; }
+        .strength-strong { background: #27ae60; width: 100%; }
+
+        .secret-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .secret-info strong {
+            color: #1976d2;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-register:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #95a5a6;
+        }
+
+        .btn-register.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn-register.loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin: -10px 0 0 -10px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .result-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-content.success h2 { color: #27ae60; }
+        .modal-content.error h2 { color: #e74c3c; }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .modal-content button {
+            padding: 10px 30px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .footer a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h1>🎮 Регистрация на сервере</h1>
+        <div class="subtitle">Ultima Online - Новая Эра</div>
+
+        <div class="secret-info">
+            <strong>🔐 Важное замечание о секретном слове:</strong><br>
+            Секретное слово используется для восстановления пароля, если вы забудете его.
+            Запомните его или сохраните в надежном месте!
+        </div>
+
+        <form id="registerForm">
+            <!-- Логин -->
+            <div class="form-group">
+                <label for="login" class="required">Логин</label>
+                <input type="text" id="login" name="login" 
+                       placeholder="Введите логин" 
+                       autocomplete="off"
+                       maxlength="16"
+                       required>
+                <div class="input-hint">Только латинские буквы и цифры, от 5 до 16 символов</div>
+                <div id="loginStatus" class="status-message"></div>
+            </div>
+
+            <!-- Пароль -->
+            <div class="form-group">
+                <label for="password" class="required">Пароль</label>
+                <input type="password" id="password" name="password" 
+                       placeholder="Введите пароль"
+                       maxlength="50"
+                       required>
+                <div class="input-hint">Минимум 6 символов, только латинские буквы и цифры</div>
+                <div class="password-strength">
+                    <div id="strengthBar" class="strength-bar"></div>
+                </div>
+                <div id="passwordStatus" class="status-message"></div>
+            </div>
+
+            <!-- Секретное слово -->
+            <div class="form-group">
+                <label for="secret" class="required">Секретное слово</label>
+                <input type="text" id="secret" name="secret" 
+                       placeholder="Придумайте секретное слово"
+                       autocomplete="off"
+                       maxlength="20"
+                       required>
+                <div class="input-hint">Одно слово, только латинские буквы и цифры, 2-20 символов</div>
+                <div id="secretStatus" class="status-message"></div>
+            </div>
+
+            <button type="submit" id="registerBtn" class="btn-register">Зарегистрироваться</button>
+        </form>
+
+        <div class="footer">
+            <a href="/privacy">Политика конфиденциальности</a> • 
+            <a href="/terms">Правила сервера</a> • 
+            <a href="/support">Поддержка</a>
+        </div>
+    </div>
+
+    <!-- Модальное окно для результата -->
+    <div id="resultModal" class="result-modal">
+        <div class="modal-content" id="modalContent">
+            <h2 id="modalTitle">Успешно!</h2>
+            <p id="modalMessage"></p>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация - ЗАМЕНИТЕ НА СВОИ ЗНАЧЕНИЯ
+        const API_SECRET_KEY = 'YXbVEfcZdGks5YWylIELtl53Wce0f7lt'; // Из файла api_secret.key
+        const API_URL = 'http://localhost:5000'; // URL вашего сервера
+
+        // Состояние
+        let loginValid = false;
+        let passwordValid = false;
+        let secretValid = false;
+
+        // Функция для вычисления HMAC-SHA256
+        async function generateSignature(data, secretKey) {
+            const encoder = new TextEncoder();
+            const key = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(secretKey),
+                { name: 'HMAC', hash: 'SHA-256' },
+                false,
+                ['sign']
+            );
+            
+            const sortedKeys = Object.keys(data).filter(k => k !== 'signature').sort();
+            const signParts = sortedKeys.map(key => `${key}=${data[key]}`);
+            const signString = signParts.join('&');
+            
+            const signature = await crypto.subtle.sign(
+                'HMAC',
+                key,
+                encoder.encode(signString)
+            );
+            
+            return Array.from(new Uint8Array(signature))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // Проверка логина через API
+        async function checkLogin(login) {
+            const loginStatus = document.getElementById('loginStatus');
+            const loginInput = document.getElementById('login');
+            
+            if (login.length < 5) {
+                loginStatus.textContent = 'Минимум 5 символов';
+                loginStatus.className = 'status-message status-error';
+                loginInput.classList.add('error');
+                loginInput.classList.remove('success');
+                return false;
+            }
+            
+            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(login)) {
+                loginStatus.textContent = 'Только латинские буквы и цифры, начинаться с буквы';
+                loginStatus.className = 'status-message status-error';
+                loginInput.classList.add('error');
+                loginInput.classList.remove('success');
+                return false;
+            }
+            
+            loginStatus.textContent = 'Проверка...';
+            loginStatus.className = 'status-message status-info';
+            
+            try {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const data = { login, timestamp };
+                const signature = await generateSignature(data, API_SECRET_KEY);
+                data.signature = signature;
+                
+                const response = await fetch(`${API_URL}/api/check-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.available) {
+                    loginStatus.textContent = '✓ Логин свободен';
+                    loginStatus.className = 'status-message status-success';
+                    loginInput.classList.remove('error');
+                    loginInput.classList.add('success');
+                    return true;
+                } else {
+                    loginStatus.textContent = '✗ Этот логин уже занят';
+                    loginStatus.className = 'status-message status-error';
+                    loginInput.classList.add('error');
+                    loginInput.classList.remove('success');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Check login error:', error);
+                loginStatus.textContent = 'Ошибка проверки логина';
+                loginStatus.className = 'status-message status-error';
+                loginInput.classList.add('error');
+                loginInput.classList.remove('success');
+                return false;
+            }
+        }
+
+        // Проверка пароля
+        function validatePassword(password) {
+            const passwordStatus = document.getElementById('passwordStatus');
+            const passwordInput = document.getElementById('password');
+            const strengthBar = document.getElementById('strengthBar');
+            
+            if (password.length < 6) {
+                passwordStatus.textContent = 'Минимум 6 символов';
+                passwordStatus.className = 'status-message status-error';
+                passwordInput.classList.add('error');
+                passwordInput.classList.remove('success');
+                strengthBar.className = 'strength-bar';
+                return false;
+            }
+            
+            if (password.includes(' ')) {
+                passwordStatus.textContent = 'Пароль не должен содержать пробелы';
+                passwordStatus.className = 'status-message status-error';
+                passwordInput.classList.add('error');
+                passwordInput.classList.remove('success');
+                strengthBar.className = 'strength-bar';
+                return false;
+            }
+            
+            if (/[а-яА-ЯёЁ]/.test(password)) {
+                passwordStatus.textContent = 'Только латинские буквы';
+                passwordStatus.className = 'status-message status-error';
+                passwordInput.classList.add('error');
+                passwordInput.classList.remove('success');
+                strengthBar.className = 'strength-bar';
+                return false;
+            }
+            
+            // Оценка сложности пароля
+            let strength = 'weak';
+            if (password.length >= 8 && /[0-9]/.test(password) && /[a-zA-Z]/.test(password)) {
+                strength = 'strong';
+            } else if (password.length >= 6 && /[0-9]/.test(password)) {
+                strength = 'medium';
+            }
+            
+            strengthBar.className = `strength-bar strength-${strength}`;
+            
+            passwordStatus.textContent = '✓ Пароль подходит';
+            passwordStatus.className = 'status-message status-success';
+            passwordInput.classList.remove('error');
+            passwordInput.classList.add('success');
+            return true;
+        }
+
+        // Проверка секретного слова
+        function validateSecret(secret) {
+            const secretStatus = document.getElementById('secretStatus');
+            const secretInput = document.getElementById('secret');
+            
+            if (secret.length < 2) {
+                secretStatus.textContent = 'Минимум 2 символа';
+                secretStatus.className = 'status-message status-error';
+                secretInput.classList.add('error');
+                secretInput.classList.remove('success');
+                return false;
+            }
+            
+            if (secret.length > 20) {
+                secretStatus.textContent = 'Максимум 20 символов';
+                secretStatus.className = 'status-message status-error';
+                secretInput.classList.add('error');
+                secretInput.classList.remove('success');
+                return false;
+            }
+            
+            if (secret.includes(' ')) {
+                secretStatus.textContent = 'Без пробелов';
+                secretStatus.className = 'status-message status-error';
+                secretInput.classList.add('error');
+                secretInput.classList.remove('success');
+                return false;
+            }
+            
+            if (!/^[a-zA-Z0-9]+$/.test(secret)) {
+                secretStatus.textContent = 'Только латинские буквы и цифры';
+                secretStatus.className = 'status-message status-error';
+                secretInput.classList.add('error');
+                secretInput.classList.remove('success');
+                return false;
+            }
+            
+            secretStatus.textContent = '✓ Секретное слово подходит';
+            secretStatus.className = 'status-message status-success';
+            secretInput.classList.remove('error');
+            secretInput.classList.add('success');
+            return true;
+        }
+
+        // Регистрация
+        async function register(login, password, secret) {
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.classList.add('loading');
+            
+            try {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const data = { login, password, secret, timestamp };
+                const signature = await generateSignature(data, API_SECRET_KEY);
+                data.signature = signature;
+                
+                const response = await fetch(`${API_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showModal('success', 'Регистрация успешна!', 
+                        `Аккаунт ${login} успешно создан. Сохраните ваши данные в надежном месте!`);
+                    document.getElementById('registerForm').reset();
+                    document.querySelectorAll('input').forEach(input => {
+                        input.classList.remove('success', 'error');
+                    });
+                } else {
+                    showModal('error', 'Ошибка регистрации', 
+                        result.error || 'Не удалось создать аккаунт. Попробуйте позже.');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showModal('error', 'Ошибка соединения', 
+                    'Не удалось связаться с сервером. Проверьте подключение к интернету.');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.classList.remove('loading');
+            }
+        }
+
+        // Показать модальное окно
+        function showModal(type, title, message) {
+            const modal = document.getElementById('resultModal');
+            const modalContent = document.getElementById('modalContent');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            
+            modalContent.className = `modal-content ${type}`;
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.classList.add('show');
+        }
+
+        // Закрыть модальное окно
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('show');
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginInput = document.getElementById('login');
+            const passwordInput = document.getElementById('password');
+            const secretInput = document.getElementById('secret');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            let loginTimeout;
+            
+            // Проверка логина
+            loginInput.addEventListener('input', async function() {
+                clearTimeout(loginTimeout);
+                const login = this.value.trim();
+                
+                if (login.length < 5) {
+                    loginValid = false;
+                    updateButtonState();
+                }
+                
+                loginTimeout = setTimeout(async () => {
+                    if (login) {
+                        loginValid = await checkLogin(login);
+                    } else {
+                        loginValid = false;
+                    }
+                    updateButtonState();
+                }, 500);
+            });
+            
+            // Проверка пароля
+            passwordInput.addEventListener('input', function() {
+                passwordValid = validatePassword(this.value);
+                updateButtonState();
+            });
+            
+            // Проверка секретного слова
+            secretInput.addEventListener('input', function() {
+                secretValid = validateSecret(this.value);
+                updateButtonState();
+            });
+            
+            // Обновление состояния кнопки
+            function updateButtonState() {
+                registerBtn.disabled = !(loginValid && passwordValid && secretValid);
+            }
+            
+            // Отправка формы
+            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!loginValid || !passwordValid || !secretValid) {
+                    return;
+                }
+                
+                const login = loginInput.value.trim();
+                const password = passwordInput.value.trim();
+                const secret = secretInput.value.trim();
+                
+                await register(login, password, secret);
+            });
+            
+            // Закрытие модального окна по ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
